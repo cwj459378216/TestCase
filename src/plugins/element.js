@@ -14,7 +14,8 @@ import {
   MessageBox,
   Dialog,
   Table,
-  TableColumn
+  TableColumn,
+  Loading
 } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
@@ -32,4 +33,5 @@ Vue.use(Input)
 Vue.use(Dialog)
 Vue.use(Table)
 Vue.use(TableColumn)
+Vue.use(Loading)
 Vue.prototype.$alert = MessageBox.alert

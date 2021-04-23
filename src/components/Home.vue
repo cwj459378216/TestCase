@@ -5,7 +5,10 @@
         <el-row :gutter="20">
           <el-col :span="18" :offset="3">
             <div class="grid-content bg-purple">
-              <img src="../assets/logo.png" alt="">
+              <div class="nav-left">
+               <img src="../assets/NetEyez_2.png" aria-roledescription="logo" />
+                <span class="nav-left-txt">NetEyez</span>
+              </div>
               <div class="nav-right">
                   <div class="nav-input">
                       <el-select v-model="value" clearable placeholder="请选择">
@@ -18,9 +21,9 @@
                     </el-select>
                   </div>
                   <div class="nav-right-button">
-                    <el-button type="danger">Save</el-button>
-                    <el-button type="primary">Test</el-button>
-                    <el-button type="danger">Delete</el-button>
+                    <el-button type="success" @click="openFullScreen1">Save</el-button>
+                    <el-button type="primary" @click="openFullScreen1">Test</el-button>
+                    <el-button type="danger" @click="openFullScreen1">Delete</el-button>
                   </div>
               </div>
             </div>
@@ -36,6 +39,7 @@
                 v-model="filterText">
               </el-input>
               <el-tree
+                v-loading="fullscreenLoading"
                 class="filter-tree"
                 :data="data"
                 :props="defaultProps"
@@ -55,14 +59,28 @@
           border
           style="width: 100%">
           <el-table-column
-            prop="date"
             label="Source File"
             >
+            <template>
+             <json-viewer
+                :value="{'aa': 'aaaa', 'cc': 'dddd', 'd': [ {'a': 'b'}]}"
+                :expand-depth="4" copyable
+                :expanded="true"
+                boxed
+                sort></json-viewer>
+            </template>
           </el-table-column>
           <el-table-column
-            prop="name"
             label="New File"
             >
+            <template>
+             <json-viewer
+                :value="{'aa': 'aaaa', 'cc': 'dddd', 'd': [ {'a': 'b'}]}"
+                :expand-depth="4" copyable
+                :expanded="true"
+                boxed
+                sort></json-viewer>
+            </template>
           </el-table-column>
         </el-table>
     </el-dialog>
@@ -76,6 +94,14 @@ export default {
       this.$refs.tree.filter(val)
     }
   },
+  computed: {
+    toJson (txt) {
+      console.log(txt)
+      txt.Substring(0, txt.length - 1)
+      txt.Substring(0, 1)
+      return txt
+    }
+  },
   methods: {
     filterNode (value, data) {
       if (!value) return true
@@ -85,23 +111,31 @@ export default {
       this.$alert(`<div><strong>${data.label}</strong></div> <div><strong>${data.label}</strong></div>`, 'File Diff', {
         dangerouslyUseHTMLString: true
       })
+    },
+    openFullScreen1 () {
+      this.fullscreenLoading = true
+      setTimeout(() => {
+        this.fullscreenLoading = false
+      }, 2000)
     }
   },
   data () {
     return {
       options: [{
         value: '选项1',
-        label: 'Dashboard'
+        label: '1.pcap'
       }, {
         value: '选项2',
-        label: 'Analyse'
+        label: '2.pcap'
       }, {
         value: '选项3',
-        label: 'Report'
+        label: '3.pcap'
       }],
+      fullscreenLoading: false,
       value: '',
       filterText: '',
       dialogVisible: false,
+      jsonText: '',
       data: [{
         id: 1,
         label: 'Dashboard',
@@ -142,8 +176,8 @@ export default {
         label: 'label'
       },
       tableData: [{
-        date: 'aaaaaaaaa',
-        name: 'bbbbbbbb'
+        data: "{'aa': 'aaaa', 'cc': 'dddd', 'd': [ {'a': 'b'}]}",
+        name: '{"bb": "bbbb"}'
       }]
     }
   }
@@ -156,6 +190,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 10px;
   }
   img {
     width: 50px;
@@ -176,5 +211,15 @@ export default {
   }
   .el-input {
     margin-bottom: 20px;
+  }
+  .nav-left {
+    display: flex;
+  }
+  .nav-left-txt {
+    display: flex;
+    align-items: center;
+    font-size: 30px;
+    margin-left: 10px;
+    color: #544c81;
   }
 </style>
