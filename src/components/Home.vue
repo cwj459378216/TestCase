@@ -11,7 +11,7 @@
               </div>
               <div class="nav-right">
                   <div class="nav-input">
-                      <el-select v-model="value" clearable placeholder="请选择">
+                      <el-select v-model="value" clearable placeholder="Select Pcap" @change="selectChange">
                       <el-option
                         v-for="item in options"
                         :key="item.value"
@@ -21,9 +21,9 @@
                     </el-select>
                   </div>
                   <div class="nav-right-button">
-                    <el-button type="success" @click="openFullScreen1">Save</el-button>
-                    <el-button type="primary" @click="openFullScreen1">Test</el-button>
-                    <el-button type="danger" @click="openFullScreen1">Delete</el-button>
+                    <el-button type="success" @click="save">Save</el-button>
+                    <el-button type="primary" @click="test">Test</el-button>
+                    <el-button type="danger" @click="deleteFile">Delete</el-button>
                   </div>
               </div>
             </div>
@@ -41,11 +41,12 @@
               <el-tree
                 v-loading="fullscreenLoading"
                 class="filter-tree"
-                :data="data"
+                :data="dataTree"
                 :props="defaultProps"
                 default-expand-all
-                @node-click="dialogVisible = true"
+                @node-click="showDialog"
                 :filter-node-method="filterNode"
+                :render-content="renderContent"
                 ref="tree">
               </el-tree>
             </el-card>
@@ -53,18 +54,19 @@
         </el-row>
       </el-main>
     </el-container>
-    <el-dialog title="File Diff" :visible.sync="dialogVisible" center>
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" center>
         <el-table
           :data="tableData"
           border
+          :cell-style="rowStyle"
           style="width: 100%">
           <el-table-column
             label="Source File"
             >
             <template>
              <json-viewer
-                :value="{'aa': 'aaaa', 'cc': 'dddd', 'd': [ {'a': 'b'}]}"
-                :expand-depth="4" copyable
+                :value="tableData[0].successJSON"
+                :expand-depth="2" copyable
                 :expanded="true"
                 boxed
                 sort></json-viewer>
@@ -75,8 +77,8 @@
             >
             <template>
              <json-viewer
-                :value="{'aa': 'aaaa', 'cc': 'dddd', 'd': [ {'a': 'b'}]}"
-                :expand-depth="4" copyable
+                :value="tableData[0].testJSON"
+                :expand-depth="2" copyable
                 :expanded="true"
                 boxed
                 sort></json-viewer>
@@ -89,6 +91,10 @@
 
 <script>
 export default {
+  created () {
+    this.getTree()
+    this.selectList()
+  },
   watch: {
     filterText (val) {
       this.$refs.tree.filter(val)
@@ -117,13 +123,84 @@ export default {
       setTimeout(() => {
         this.fullscreenLoading = false
       }, 2000)
+    },
+    async getTree () {
+      const { data: res } = await this.$http.get('/test/loadYaml')
+      if (res.code !== 200) return this.$message.error('Tree loading error')
+      this.dataTree = res.data
+    },
+    async showDialog (dataRow, node) {
+      if (dataRow.children) return
+      if (!this.value) return this.$message.error('Please select pcap')
+      this.fullscreenLoading = true
+      const { data: res } = await this.$http.get(`/test/checkResult?datasource=${this.value}&path=neteyez-dashboard-neteyez/alarm`)
+      this.dialogVisible = true
+      this.fullscreenLoading = false
+      this.tableData[0].successJSON = JSON.parse(res.data.successJSON)
+      this.tableData[0].testJSON = JSON.parse(res.data.testJSON)
+      this.dialogTitle = dataRow.label
+    },
+    async save () {
+      if (!this.value) return this.$message.error('Please select a pcap')
+      this.fullscreenLoading = true
+      const { data: res } = await this.$http.post(`/test/saveResult/${this.value}`)
+      if (res.code !== 200) return this.$message.error('Save error')
+      this.fullscreenLoading = false
+      this.$message.success('Save success')
+    },
+    async test () {
+      if (!this.value) return this.$message.error('Please select a pcap')
+      this.fullscreenLoading = true
+      const { data: res } = await this.$http.post(`/test/testApi/${this.value}`)
+      if (res.code !== 200) return this.$message.error('Test error')
+      this.fullscreenLoading = false
+      this.dataTree = res.data
+      this.$message.success('Test success')
+    },
+    async deleteFile () {
+      if (!this.value) return this.$message.error('Please select a pcap')
+      this.fullscreenLoading = true
+      const { data: res } = await this.$http.get(`/test/delete?datasource=${this.value}`)
+      if (res.code !== 200) return this.$message.error('Delete error')
+      this.fullscreenLoading = false
+      this.getTree()
+      this.$message.success('Delete success')
+    },
+    renderContent (h, { node, data, store }) {
+      if (!data.children) {
+        if (!data.success) {
+          return (
+            <span class="custom-tree-node">
+              <span style="color: #F56C6C;">{node.label}</span>
+            </span>)
+        }
+      }
+      return (
+        <span class="custom-tree-node">
+          <span>{node.label}</span>
+        </span>)
+    },
+    selectChange () {
+      this.fullscreenLoading = true
+      this.getTree()
+      this.fullscreenLoading = false
+    },
+    async selectList () {
+      const { data: res } = await this.$http.get('/test/getAllDataSource')
+      if (res.code !== 200) return this.$message('Data source loading failed')
+      const pcapList = res.data.map(e => ({ value: e.split('/').pop(), label: e.split('/').pop() }))
+      this.options = pcapList.slice(2, pcapList.length)
+      console.log(this.options)
+    },
+    rowStyle ({ row, column, rowIndex, columnIndex }) {
+      return 'vertical-align: top;'
     }
   },
   data () {
     return {
       options: [{
-        value: '选项1',
-        label: '1.pcap'
+        value: '1619173955336-3752_NetEyez_Demo_2021.pcapng',
+        label: '1619173955336-3752_NetEyez_Demo_2021.pcapng'
       }, {
         value: '选项2',
         label: '2.pcap'
@@ -136,49 +213,16 @@ export default {
       filterText: '',
       dialogVisible: false,
       jsonText: '',
-      data: [{
-        id: 1,
-        label: 'Dashboard',
-        children: [{
-          id: 4,
-          label: 'NetWork',
-          children: [{
-            id: 9,
-            label: 'Api-1'
-          }, {
-            id: 10,
-            label: 'Api-2'
-          }]
-        }]
-      }, {
-        id: 2,
-        label: '一级 2',
-        children: [{
-          id: 5,
-          label: '二级 2-1'
-        }, {
-          id: 6,
-          label: '二级 2-2'
-        }]
-      }, {
-        id: 3,
-        label: '一级 3',
-        children: [{
-          id: 7,
-          label: '二级 3-1'
-        }, {
-          id: 8,
-          label: '二级 3-2'
-        }]
-      }],
+      dataTree: [],
       defaultProps: {
         children: 'children',
         label: 'label'
       },
       tableData: [{
-        data: "{'aa': 'aaaa', 'cc': 'dddd', 'd': [ {'a': 'b'}]}",
-        name: '{"bb": "bbbb"}'
-      }]
+        successJSON: "{'aa': 'aaaa', 'cc': 'dddd', 'd': [ {'a': 'b'}]}",
+        testJSON: '{"bb": "bbbb"}'
+      }],
+      dialogTitle: 'File Diff'
     }
   }
 }
@@ -221,5 +265,8 @@ export default {
     font-size: 30px;
     margin-left: 10px;
     color: #544c81;
+  }
+  .td-top {
+    vertical-align: top;
   }
 </style>

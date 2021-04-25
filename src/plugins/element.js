@@ -15,7 +15,8 @@ import {
   Dialog,
   Table,
   TableColumn,
-  Loading
+  Loading,
+  Message
 } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
@@ -35,3 +36,4 @@ Vue.use(Table)
 Vue.use(TableColumn)
 Vue.use(Loading)
 Vue.prototype.$alert = MessageBox.alert
+Vue.prototype.$message = Message

@@ -6,6 +6,10 @@ import './plugins/JsonViewer.js'
 import './assets/css/global.css'
 import 'vue-json-viewer/style.css'
 
+import axios from 'axios'
+axios.defaults.baseURL = '/api'
+
+Vue.prototype.$http = axios
 Vue.config.productionTip = false
 
 new Vue({
