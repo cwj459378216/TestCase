@@ -35,7 +35,7 @@
           <el-col :span="18" :offset="3">
             <el-card shadow="always">
               <el-input
-                placeholder="输入关键字进行过滤"
+                placeholder="Enter keywords to filter"
                 v-model="filterText">
               </el-input>
               <el-tree
@@ -54,7 +54,7 @@
         </el-row>
       </el-main>
     </el-container>
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" center>
+    <el-dialog :title="dialogTitle" width="70%" top="5vh" :visible.sync="dialogVisible" center>
         <el-table
           :data="tableData"
           border
@@ -130,20 +130,21 @@ export default {
       this.dataTree = res.data
     },
     async showDialog (dataRow, node) {
+      console.log(dataRow)
       if (dataRow.children) return
       if (!this.value) return this.$message.error('Please select pcap')
       this.fullscreenLoading = true
-      const { data: res } = await this.$http.get(`/test/checkResult?datasource=${this.value}&path=neteyez-dashboard-neteyez/alarm`)
+      const { data: res } = await this.$http.get(`/test/checkResult?datasource=${this.value}&path=${dataRow.caller.path}`)
       this.dialogVisible = true
       this.fullscreenLoading = false
-      this.tableData[0].successJSON = JSON.parse(res.data.successJSON)
-      this.tableData[0].testJSON = JSON.parse(res.data.testJSON)
+      this.tableData[0].successJSON = res.data.successJSON ? JSON.parse(res.data.successJSON) : JSON.parse('{"msg":"file does not exist"}')
+      this.tableData[0].testJSON = res.data.testJSON ? JSON.parse(res.data.testJSON) : JSON.parse('{"msg":"file does not exist"}')
       this.dialogTitle = dataRow.label
     },
     async save () {
       if (!this.value) return this.$message.error('Please select a pcap')
       this.fullscreenLoading = true
-      const { data: res } = await this.$http.post(`/test/saveResult/${this.value}`)
+      const { data: res } = await this.$http.post(`/test/saveResult?datasource=${this.value}`)
       if (res.code !== 200) return this.$message.error('Save error')
       this.fullscreenLoading = false
       this.$message.success('Save success')
@@ -151,7 +152,7 @@ export default {
     async test () {
       if (!this.value) return this.$message.error('Please select a pcap')
       this.fullscreenLoading = true
-      const { data: res } = await this.$http.post(`/test/testApi/${this.value}`)
+      const { data: res } = await this.$http.post(`/test/testApi?datasource=${this.value}`)
       if (res.code !== 200) return this.$message.error('Test error')
       this.fullscreenLoading = false
       this.dataTree = res.data
@@ -188,7 +189,7 @@ export default {
     async selectList () {
       const { data: res } = await this.$http.get('/test/getAllDataSource')
       if (res.code !== 200) return this.$message('Data source loading failed')
-      const pcapList = res.data.map(e => ({ value: e.split('/').pop(), label: e.split('/').pop() }))
+      const pcapList = res.data.map(e => ({ value: e, label: e.split('/').pop() }))
       this.options = pcapList.slice(2, pcapList.length)
       console.log(this.options)
     },
@@ -198,16 +199,7 @@ export default {
   },
   data () {
     return {
-      options: [{
-        value: '1619173955336-3752_NetEyez_Demo_2021.pcapng',
-        label: '1619173955336-3752_NetEyez_Demo_2021.pcapng'
-      }, {
-        value: '选项2',
-        label: '2.pcap'
-      }, {
-        value: '选项3',
-        label: '3.pcap'
-      }],
+      options: [],
       fullscreenLoading: false,
       value: '',
       filterText: '',
