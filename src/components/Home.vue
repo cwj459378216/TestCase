@@ -379,7 +379,7 @@ export default {
       console.log(row)
     },
     async updateHost (id) {
-      const { data: res } = await this.$http(`setting/active?id=${id}`)
+      const { data: res } = await this.$http(`/setting/active?id=${id}`)
       if (res.code !== 200) return this.$message('Host update failed')
       this.$message('Host update succeed')
       this.getHostList()
