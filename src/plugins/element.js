@@ -16,7 +16,10 @@ import {
   Table,
   TableColumn,
   Loading,
-  Message
+  Message,
+  FormItem,
+  Form,
+  Upload
 } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
@@ -34,6 +37,10 @@ Vue.use(Input)
 Vue.use(Dialog)
 Vue.use(Table)
 Vue.use(TableColumn)
+Vue.use(FormItem)
+Vue.use(Form)
 Vue.use(Loading)
+Vue.use(Upload)
 Vue.prototype.$alert = MessageBox.alert
+Vue.prototype.$confirm = MessageBox.confirm
 Vue.prototype.$message = Message
