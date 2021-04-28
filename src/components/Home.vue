@@ -8,6 +8,14 @@
               <div class="nav-left">
                <img src="../assets/NetEyez_2.png" aria-roledescription="logo" />
                 <span class="nav-left-txt">NetEyez</span>
+                <div class="nav-input product-select">
+                      <el-select v-model="currentProduct" clearable placeholder="Select Producet" @change="changeProduct">
+                      <el-option value="NetEyez">NetEyez 1.0</el-option>
+                      <el-option value="ThunderBot">ThunderBot 4.5</el-option>
+                      <el-option value="Synesis">Synesis 6.0</el-option>
+                      <el-option value="Omnix">Omnix 3.0</el-option>
+                    </el-select>
+                  </div>
               </div>
               <div class="nav-right">
                   <div class="nav-input">
@@ -148,6 +156,7 @@
 
 <script>
 import Config from './Config'
+import './home.css'
 
 export default {
   components: { Config },
@@ -251,6 +260,9 @@ export default {
       this.fullscreenLoading = true
       this.getTree()
       this.fullscreenLoading = false
+    },
+    changeProduct () {
+      console.log(this.currentProduct)
     },
     async selectList () {
       const { data: res } = await this.$http.get('/test/getAllDataSource')
@@ -426,7 +438,8 @@ export default {
       hostTable: [
         { id: 0, host: '192.168.1.1', port: 8009, active: true }
       ],
-      currentRow: null
+      currentRow: null,
+      currentProduct: 'NetEyez'
     }
   }
 }
