@@ -33,7 +33,7 @@ export default {
       this.$emit('cancel', false)
     },
     async save () {
-      const { data: res } = await this.$http.put('/setting/', this.form)
+      const { data: res } = await this.$http.put('/targetServer/', this.form)
       if (res.code !== 200) return this.$message('Host add failed')
       this.$message('Host add succeed')
       this.$emit('save', false)

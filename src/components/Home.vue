@@ -68,6 +68,7 @@
                         <template slot-scope="scope">
                           <el-button @click="updateHost(scope.row.id)" v-if="scope.row.active"  type="text" size="small">Open</el-button>
                           <el-button @click="updateHost(scope.row.id)" v-else  type="text" size="small">Close</el-button>
+                          <el-button @click="deleteHost(scope.row.id)"  style="color: #F56C6C"  type="text" size="small">Delete</el-button>
                           <!-- <el-button type="text" size="small">Synchronize</el-button> -->
                         </template>
                       </el-table-column>
@@ -205,7 +206,7 @@ export default {
       if (dataRow.children) return
       // if (!this.value) return this.$message.error({ showClose: true, message: 'Please select pcap' }) // 需要修改为根据dataSource请求,等待api接口
       this.fullscreenLoading = true
-      const { data: res } = await this.$http.get(`/test/checkResult?datasource=${dataRow.datasource}&path=${dataRow.caller.path}`)
+      const { data: res } = await this.$http.get(`/test/checkResult?datasource=${this.value}&path=${dataRow.caller.path}`)
       this.dialogVisible = true
       this.fullscreenLoading = false
       this.tableData[0].successJSON = res.data.successJSON ? res.data.successJSON : ''
@@ -395,7 +396,14 @@ export default {
       this.selectList()
     },
     async updateHost (id) {
-      const { data: res } = await this.$http(`/setting/active?id=${id}`)
+      const { data: res } = await this.$http.post(`/targetServer/active?id=${id}`)
+      if (res.code !== 200) return this.$message('Host update failed')
+      this.$message('Host update succeed')
+      this.getHostList()
+    },
+
+    async deleteHost (id) {
+      const { data: res } = await this.$http.get(`/targetServer/delete?id=${id}`)
       if (res.code !== 200) return this.$message('Host update failed')
       this.$message('Host update succeed')
       this.getHostList()
