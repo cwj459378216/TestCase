@@ -22,9 +22,9 @@
                       <el-select v-model="value" clearable placeholder="Select Pcap" @change="selectChange">
                       <el-option
                         v-for="item in options"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value">
+                        :key="item.value.id"
+                        :label="item.label.fileName"
+                        :value="item.value.id">
                       </el-option>
                     </el-select>
                   </div>
@@ -144,7 +144,7 @@
         class="upload-demo"
         accept="pcap"
         drag
-        action="https://jsonplaceholder.typicode.com/posts/"
+        action="/api/file/upload"
         multiple>
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">Drag the file here，or<em> Click upload</em></div>
@@ -357,7 +357,7 @@ export default {
       this.getHostList()
     },
     async getHostList () {
-      const { data: res } = await this.$http.get('/setting/all')
+      const { data: res } = await this.$http.get('/targetServer/all')
       if (res.code !== 200) return this.$message('Host list loading failed')
       this.hostTable = res.data
       this.hostTable.forEach(e => {
