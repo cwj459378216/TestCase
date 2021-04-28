@@ -306,7 +306,7 @@ export default {
       this.fullscreenLoading = true
       const urls = []
       for (const i of this.options) {
-        urls.push(this.$http.post(`/test/saveResult?datasource=${i.value}`))
+        urls.push(this.$http.post(`/test/saveResult?datasource=${i.value.fileName}`))
       }
       this.$http.all(urls).then(res => {
         console.log(res)
