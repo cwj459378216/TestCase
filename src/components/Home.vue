@@ -24,7 +24,7 @@
                         v-for="item in options"
                         :key="item.value.id"
                         :label="item.label.fileName"
-                        :value="item.value.id">
+                        :value="item.value.fileName">
                       </el-option>
                     </el-select>
                   </div>
@@ -143,6 +143,7 @@
         width="100%"
         class="upload-demo"
         accept="pcap"
+        :onSuccess="handleUploadSuccess"
         drag
         action="/api/file/upload"
         multiple>
@@ -319,7 +320,7 @@ export default {
       this.fullscreenLoading = true
       const urls = []
       for (const i of this.options) {
-        urls.push(this.$http.get(`/test/delete?datasource=${i.value}`))
+        urls.push(this.$http.get(`/test/delete?datasource=${i.value.fileName}`))
       }
       this.$http.all(urls).then(res => {
         for (const b of res) {
@@ -389,6 +390,9 @@ export default {
     },
     handleClick (row) {
       console.log(row)
+    },
+    handleUploadSuccess () {
+      this.selectList()
     },
     async updateHost (id) {
       const { data: res } = await this.$http(`/setting/active?id=${id}`)
