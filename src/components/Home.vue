@@ -29,8 +29,7 @@
                     </el-select>
                   </div>
                   <div class="nav-right-button">
-                    <el-button type="info" @click="dialogFormVisible = true" :disabled="fullscreenLoading">Setting</el-button>
-                    <el-button type="success" @click="save" :disabled="fullscreenLoading">Save</el-button>
+                    <el-button type="success" @click="save" :disabled="fullscreenLoading">Save Baseline File</el-button>
                     <el-button type="primary" @click="test" :disabled="fullscreenLoading">Test</el-button>
                     <el-button type="danger" @click="deleteFile" :disabled="fullscreenLoading">Delete</el-button>
                     <el-button @click="saveAll" :disabled="fullscreenLoading">Save All</el-button>
@@ -48,6 +47,7 @@
           <el-col :span="18" :offset="3"  class="box-content">
             <el-col :span="7" class="hostTable">
               <el-card shadow="always" class="min-h">
+                <el-button  @click="dialogFormVisible = true" size="small" type="primary" :disabled="fullscreenLoading">Add Host</el-button>
                   <el-table
                     ref="singleTable"
                     :data="hostTable"
@@ -56,7 +56,7 @@
                     style="width: 100%"
                     >
                     <el-table-column
-                      label="Host List">
+                      label="Test Machine">
                         <template slot-scope="scope">
                             {{scope.row.host}}:{{scope.row.port}}
                         </template>
@@ -197,7 +197,7 @@ export default {
       }, 2000)
     },
     async getTree () {
-      const { data: res } = await this.$http.get('/test/loadYaml')
+      const { data: res } = await this.$http.get(`/test/loadYaml?datasource=${this.value}`)
       if (res.code !== 200) return this.$message.error({ showClose: true, message: 'Tree loading error' })
       this.dataTree = res.data
     },
@@ -337,7 +337,7 @@ export default {
       const urls = []
       const treeData = []
       for (const i of this.options) {
-        urls.push(this.$http.post(`/test/testApi?datasource=${i.value}`))
+        urls.push(this.$http.post(`/test/testApi?datasource=${i.value.fileName}`))
       }
       this.$http.all(urls).then(res => {
         for (const b of res) {
@@ -360,7 +360,7 @@ export default {
     },
     async getHostList () {
       const { data: res } = await this.$http.get('/targetServer/all')
-      if (res.code !== 200) return this.$message('Host list loading failed')
+      if (res.code !== 200) return this.$message('Test Machine loading failed')
       this.hostTable = res.data
       this.hostTable.forEach(e => {
         if (e.active) this.setCurrent(e)
