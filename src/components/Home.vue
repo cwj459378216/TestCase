@@ -121,19 +121,18 @@
           </el-table-column>
           <el-table-column
             label="New File"
-            prop="testJSON"
             >
             <template slot-scope="scope">
-                {{scope.row.testJSON}}
+              <div v-html="scope.row.testJSON"></div>
              </template>
           </el-table-column>
-          <el-table-column
+          <!-- <el-table-column
             label="Diff File"
             >
              <template slot-scope="scope">
                 <div v-html="scope.row.diffJSON"></div>
              </template>
-          </el-table-column>
+          </el-table-column> -->
         </el-table>
     </el-dialog>
     <el-dialog title="Setting" width="30%" :visible.sync="dialogFormVisible">
@@ -209,12 +208,20 @@ export default {
       const { data: res } = await this.$http.get(`/test/checkResult?datasource=${this.value}&path=${dataRow.caller.path}`)
       this.dialogVisible = true
       this.fullscreenLoading = false
-      this.tableData[0].successJSON = res.data.successJSON ? res.data.successJSON : ''
-      this.tableData[0].testJSON = res.data.testJSON ? res.data.testJSON : ''
+      // this.tableData[0].successJSON = res.data.successJSON ? res.data.successJSON : ''
+      // this.tableData[0].testJSON = res.data.testJSON ? res.data.testJSON : ''
+      // this.tableData[0].successJSON = '{a: 230}'
+      // this.tableData[0].testJSON = '{a: 23}'
+      const source = res.data.successJSON || ''
+      const target = res.data.testJSON || ''
       const diff = this.diff(this.tableData[0].successJSON, this.tableData[0].testJSON)
+      const diffSource = this.diffSource(source, target)
+      const diffTarget = this.diffTarget(source, target)
       console.log(this.tableData)
       console.log(diff)
       console.log(this.nodeToString(diff))
+      this.tableData[0].successJSON = this.nodeToString(diffSource)
+      this.tableData[0].testJSON = this.nodeToString(diffTarget)
       this.tableData[0].diffJSON = this.nodeToString(diff)
       this.dialogTitle = dataRow.label
     },
@@ -276,6 +283,48 @@ export default {
     },
     rowStyle ({ row, column, rowIndex, columnIndex }) {
       return 'vertical-align: top;'
+    },
+    diffSource (oldJson, newJson) {
+      let color = ''
+      let span = ''
+      let bold = 0
+      let display = 'span'
+      const diff = this.$diff.diffChars(oldJson, newJson)
+      console.log(diff)
+      const fragment = document.createDocumentFragment()
+      diff.forEach(function (part) {
+        color = part.added ? 'green' : part.removed ? 'red' : 'grey'
+        bold = part.added ? 700 : part.removed ? 900 : 0
+        display = part.added ? 'none' : 'span'
+        span = document.createElement('span')
+        span.style.color = color
+        span.style.fontWeight = bold
+        span.style.display = display
+        span.appendChild(document.createTextNode(part.value))
+        fragment.appendChild(span)
+      })
+      return fragment
+    },
+    diffTarget (oldJson, newJson) {
+      let color = ''
+      let span = ''
+      let bold = 0
+      let display = 'span'
+      const diff = this.$diff.diffChars(oldJson, newJson)
+      console.log(diff)
+      const fragment = document.createDocumentFragment()
+      diff.forEach(function (part) {
+        color = part.added ? 'green' : 'grey'
+        bold = part.added ? 700 : 0
+        display = part.removed ? 'none' : 'span'
+        span = document.createElement('span')
+        span.style.color = color
+        span.style.fontWeight = bold
+        span.style.display = display
+        span.appendChild(document.createTextNode(part.value))
+        fragment.appendChild(span)
+      })
+      return fragment
     },
     diff (oldJson, newJson) {
       let color = ''
